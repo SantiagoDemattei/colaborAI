@@ -1,6 +1,8 @@
 package com.colaborai.colaborai.entity;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDate;
 import java.util.*;
 
 @Entity
@@ -14,6 +16,8 @@ public class Project {
     private String name;
 
     private String description;
+
+    private LocalDate createdAt = LocalDate.now();
 
     @ManyToOne
     @JoinColumn(name = "owner_id")
@@ -45,6 +49,14 @@ public class Project {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public LocalDate getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDate createdAt) {
+        this.createdAt = createdAt;
     }
 
     public User getOwner() {

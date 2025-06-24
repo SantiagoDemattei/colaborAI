@@ -1,5 +1,7 @@
 package com.colaborai.colaborai.entity;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.*;
 //import java.time.*;
 //import java.util.*;
@@ -17,8 +19,10 @@ public class Task {
     @Column(length = 2000)
     private String description;
 
-    @Column(nullable = false)
-    private boolean completed = false;
+    @Enumerated(EnumType.STRING)
+    private TaskStatus status = TaskStatus.PENDING;
+
+    private LocalDate dueDate;
 
     @ManyToOne
     @JoinColumn(name = "project_id")
@@ -52,7 +56,35 @@ public class Task {
         this.description = description;
     }
 
-    public boolean isCompleted() {
-        return completed;
+    public TaskStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TaskStatus status) {
+        this.status = status;
+    }
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
+    public User getAssignee() {
+        return assignee;
+    }
+
+    public void setAssignee(User assignee) {
+        this.assignee = assignee;
     }
 }
