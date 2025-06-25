@@ -1,0 +1,23 @@
+FROM eclipse-temurin:24-jdk
+
+WORKDIR /app
+
+# Copiar archivos de configuración de Maven
+COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
+
+# Hacer ejecutable el wrapper de Maven
+RUN chmod +x mvnw
+
+# Descargar dependencias (se cachea si pom.xml no cambia)
+RUN ./mvnw dependency:go-offline
+
+# Copiar código fuente
+COPY src ./src
+
+# Exponer puerto
+EXPOSE 8080
+
+# Ejecutar en modo desarrollo con DevTools habilitado
+ENTRYPOINT ["./mvnw", "spring-boot:run", "-Dspring-boot.run.jvmArguments='-Dspring.devtools.restart.enabled=true -Dspring.devtools.livereload.enabled=true'"]
