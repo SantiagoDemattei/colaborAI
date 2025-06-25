@@ -2,8 +2,10 @@ package com.colaborai.colaborai.service.impl;
 
 import com.colaborai.colaborai.dto.ProjectDTO;
 import com.colaborai.colaborai.entity.Project;
+import com.colaborai.colaborai.entity.ProjectMember;
 import com.colaborai.colaborai.entity.User;
 import com.colaborai.colaborai.repository.ProjectRepository;
+import com.colaborai.colaborai.repository.ProjectMemberRepository;
 import com.colaborai.colaborai.repository.UserRepository;
 import com.colaborai.colaborai.service.ProjectService;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,13 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final ProjectMemberRepository projectMemberRepository;
 
-    public ProjectServiceImpl(ProjectRepository projectRepository, UserRepository userRepository) {
+    public ProjectServiceImpl(ProjectRepository projectRepository, UserRepository userRepository,
+                            ProjectMemberRepository projectMemberRepository) {
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
+        this.projectMemberRepository = projectMemberRepository;
     }
 
     private ProjectDTO toDTO(Project project) {
@@ -52,6 +57,14 @@ public class ProjectServiceImpl implements ProjectService {
     public ProjectDTO createProject(ProjectDTO projectDTO) {
         Project project = toEntity(projectDTO);
         Project saved = projectRepository.save(project);
+        
+        // Crear automáticamente el owner como miembro OWNER del proyecto
+        if (saved.getOwner() != null) {
+            ProjectMember ownerMember = new ProjectMember(saved, saved.getOwner(), 
+                                                        ProjectMember.ProjectRole.OWNER);
+            projectMemberRepository.save(ownerMember);
+        }
+        
         return toDTO(saved);
     }
 

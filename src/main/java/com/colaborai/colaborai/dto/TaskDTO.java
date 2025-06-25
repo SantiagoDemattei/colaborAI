@@ -1,6 +1,7 @@
 package com.colaborai.colaborai.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.colaborai.colaborai.entity.TaskStatus;
 
@@ -12,6 +13,10 @@ public class TaskDTO {
     private Long assigneeId;
     private LocalDate dueDate;
     private TaskStatus status;
+    private UserDTO assignee;
+    private UserDTO createdBy;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public TaskDTO() {
     }
@@ -80,6 +85,38 @@ public class TaskDTO {
 
     public void setStatus(TaskStatus status) {
         this.status = status;
+    }
+
+    public UserDTO getAssignee() {
+        return assignee;
+    }
+
+    public void setAssignee(UserDTO assignee) {
+        this.assignee = assignee;
+    }
+
+    public UserDTO getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(UserDTO createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
 }
