@@ -3,6 +3,7 @@ package com.colaborai.colaborai.auth;
 import com.colaborai.colaborai.auth.dto.LoginRequest;
 import com.colaborai.colaborai.auth.dto.RegisterRequest;
 import com.colaborai.colaborai.auth.dto.JwtResponse;
+import com.colaborai.colaborai.auth.exception.InvalidCredentialsException;
 //import com.colaborai.colaborai.entity.Role;
 import com.colaborai.colaborai.entity.User;
 import com.colaborai.colaborai.repository.RoleRepository;
@@ -44,11 +45,18 @@ public class AuthService {
 
     public JwtResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+                .orElse(null);
+        
+        // Siempre ejecutar el encoder para evitar ataques de tiempo
+        if (user != null && passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            String token = jwtUtil.generateToken(user.getUsername());
+            return new JwtResponse(token, user.getId(), user.getUsername());
+        } else {
+            // Ejecutar passwordEncoder incluso si el usuario no existe para evitar timing attacks
+            if (user == null) {
+                passwordEncoder.matches("dummy", "$2a$10$dummyHashToPreventTimingAttacks");
+            }
+            throw new InvalidCredentialsException();
         }
-        String token = jwtUtil.generateToken(user.getUsername());
-        return new JwtResponse(token, user.getId(), user.getUsername());
     }
 }
