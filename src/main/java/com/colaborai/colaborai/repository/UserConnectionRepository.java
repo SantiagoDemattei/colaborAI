@@ -28,8 +28,7 @@ public interface UserConnectionRepository extends JpaRepository<UserConnection, 
     Optional<UserConnection> findConnectionBetweenUsers(@Param("user1") User user1, 
                                                       @Param("user2") User user2);
     
-    @Query("SELECT CASE WHEN uc.requester = :user THEN uc.receiver ELSE uc.requester END " +
-           "FROM UserConnection uc WHERE " +
-           "(uc.requester = :user OR uc.receiver = :user) AND uc.status = 'ACCEPTED'")
-    List<User> findConnectedUsers(@Param("user") User user);
+    @Query("SELECT uc FROM UserConnection uc WHERE " +
+           "(uc.requester = :user OR uc.receiver = :user) AND uc.status = :status")
+    List<UserConnection> findConnectionsByUserAndStatus(@Param("user") User user, @Param("status") UserConnection.ConnectionStatus status);
 }

@@ -5,6 +5,7 @@ import com.colaborai.colaborai.dto.UserDTO;
 import com.colaborai.colaborai.entity.Project;
 import com.colaborai.colaborai.entity.ProjectMember;
 import com.colaborai.colaborai.entity.User;
+import com.colaborai.colaborai.entity.UserConnection;
 import com.colaborai.colaborai.repository.ProjectMemberRepository;
 import com.colaborai.colaborai.repository.ProjectRepository;
 import com.colaborai.colaborai.repository.UserRepository;
@@ -154,17 +155,24 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         User owner = userRepository.findById(ownerId)
             .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
-        // Obtener usuarios conectados
-        List<User> connectedUsers = userConnectionRepository.findConnectedUsers(owner);
+        List<UserConnection> connections = userConnectionRepository.findConnectionsByUserAndStatus(owner, UserConnection.ConnectionStatus.ACCEPTED);
         
-        // Obtener usuarios que ya son miembros del proyecto
-        List<User> currentMembers = projectMemberRepository.findUsersByProject(project);
-        
-        // Filtrar usuarios conectados que no son miembros
-        return connectedUsers.stream()
-            .filter(user -> !currentMembers.contains(user))
-            .map(this::toUserDTO)
+        List<User> connectedUsers = connections.stream()
+            .map(connection -> {
+                if (connection.getRequester().getId().equals(owner.getId())) {
+                    return connection.getReceiver();
+                } else {
+                    return connection.getRequester();
+                }
+            })
             .collect(Collectors.toList());
+
+        List<User> currentMembers = projectMemberRepository.findUsersByProject(project);
+
+        return connectedUsers.stream()
+                .filter(user -> !currentMembers.contains(user))
+                .map(this::toUserDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -214,10 +222,10 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             return false;
         }
 
-        Optional<com.colaborai.colaborai.entity.UserConnection> connection = 
+        Optional<UserConnection> connection = 
             userConnectionRepository.findConnectionBetweenUsers(user1, user2);
 
         return connection.isPresent() && 
-               connection.get().getStatus() == com.colaborai.colaborai.entity.UserConnection.ConnectionStatus.ACCEPTED;
+               connection.get().getStatus() == UserConnection.ConnectionStatus.ACCEPTED;
     }
 }

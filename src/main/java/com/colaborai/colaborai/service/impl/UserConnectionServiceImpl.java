@@ -156,7 +156,18 @@ public class UserConnectionServiceImpl implements UserConnectionService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
-        List<User> connectedUsers = userConnectionRepository.findConnectedUsers(user);
+        List<UserConnection> connections = userConnectionRepository.findConnectionsByUserAndStatus(user, UserConnection.ConnectionStatus.ACCEPTED);
+        
+        List<User> connectedUsers = connections.stream()
+            .map(connection -> {
+                if (connection.getRequester().getId().equals(user.getId())) {
+                    return connection.getReceiver();
+                } else {
+                    return connection.getRequester();
+                }
+            })
+            .collect(Collectors.toList());
+            
         return connectedUsers.stream().map(this::toUserDTO).collect(Collectors.toList());
     }
 
