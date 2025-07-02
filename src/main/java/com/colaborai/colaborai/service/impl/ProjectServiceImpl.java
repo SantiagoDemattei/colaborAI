@@ -11,8 +11,10 @@ import com.colaborai.colaborai.service.ProjectService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -72,6 +74,25 @@ public class ProjectServiceImpl implements ProjectService {
     public List<ProjectDTO> getProjectsByOwner(Long ownerId) {
         List<Project> projects = projectRepository.findByOwnerId(ownerId);
         return projects.stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProjectDTO> getAllUserProjects(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        
+        // Obtener proyectos como propietario
+        List<Project> ownedProjects = projectRepository.findByOwnerId(userId);
+        
+        // Obtener proyectos como miembro usando el repository de ProjectMember
+        List<Project> memberProjects = projectMemberRepository.findProjectsByUser(user);
+        
+        // Combinar ambas listas evitando duplicados
+        Set<Project> allProjects = new HashSet<>();
+        allProjects.addAll(ownedProjects);
+        allProjects.addAll(memberProjects);
+        
+        return allProjects.stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Override
