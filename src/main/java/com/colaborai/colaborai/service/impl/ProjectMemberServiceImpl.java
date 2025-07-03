@@ -214,6 +214,14 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         return projectMemberRepository.existsByProjectAndUser(project, user);
     }
 
+    @Override
+    public boolean isUserProjectOwner(Long projectId, Long userId) {
+        Project project = projectRepository.findById(projectId)
+            .orElseThrow(() -> new IllegalArgumentException("Proyecto no encontrado"));
+
+        return project.getOwner().getId().equals(userId);
+    }
+
     private boolean areUsersConnected(Long user1Id, Long user2Id) {
         User user1 = userRepository.findById(user1Id).orElse(null);
         User user2 = userRepository.findById(user2Id).orElse(null);

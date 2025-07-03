@@ -13,4 +13,5 @@ public interface ProjectMemberService {
     boolean canUserModifyProject(Long projectId, Long userId);
     boolean canUserAssignTasks(Long projectId, Long userId);
     boolean isUserProjectMember(Long projectId, Long userId);
+    boolean isUserProjectOwner(Long projectId, Long userId);
 }

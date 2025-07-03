@@ -12,4 +12,5 @@ public interface TaskService {
     void deleteTask(Long id, Long userId);
     TaskDTO assignTask(Long taskId, Long assigneeId, Long userId);
     List<UserDTO> getAssignableUsers(Long projectId);
+    boolean canUserAccessTask(Long taskId, Long userId);
 }

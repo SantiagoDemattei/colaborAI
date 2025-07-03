@@ -221,4 +221,32 @@ public class TaskServiceImpl implements TaskService {
         List<User> members = projectMemberRepository.findUsersByProject(project);
         return members.stream().map(this::toUserDTO).collect(Collectors.toList());
     }
+
+    @Override
+    public boolean canUserAccessTask(Long taskId, Long userId) {
+        Optional<Task> taskOpt = taskRepository.findById(taskId);
+        if (!taskOpt.isPresent()) {
+            return false;
+        }
+        
+        Task task = taskOpt.get();
+        
+        // El usuario puede acceder a la tarea si:
+        // 1. Es el creador de la tarea
+        if (task.getCreatedBy() != null && task.getCreatedBy().getId().equals(userId)) {
+            return true;
+        }
+        
+        // 2. Es el asignado de la tarea
+        if (task.getAssignee() != null && task.getAssignee().getId().equals(userId)) {
+            return true;
+        }
+        
+        // 3. Es miembro del proyecto al que pertenece la tarea
+        if (task.getProject() != null) {
+            return projectMemberService.isUserProjectMember(task.getProject().getId(), userId);
+        }
+        
+        return false;
+    }
 }

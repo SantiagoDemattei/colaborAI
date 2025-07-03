@@ -3,6 +3,9 @@ package com.colaborai.colaborai.controller;
 import com.colaborai.colaborai.dto.TaskDTO;
 import com.colaborai.colaborai.dto.UserDTO;
 import com.colaborai.colaborai.service.TaskService;
+import com.colaborai.colaborai.security.annotation.RequireProjectMember;
+import com.colaborai.colaborai.security.annotation.RequireTaskAccess;
+import com.colaborai.colaborai.security.service.SecurityService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,12 +16,15 @@ import java.util.Map;
 public class TaskController {
 
     private final TaskService taskService;
+    private final SecurityService securityService;
 
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService, SecurityService securityService) {
         this.taskService = taskService;
+        this.securityService = securityService;
     }
 
     @PostMapping("/project/{projectId}")
+    @RequireProjectMember
     public TaskDTO createTask(@RequestBody Map<String, Object> request, @PathVariable Long projectId) {
         TaskDTO taskDTO = new TaskDTO();
         taskDTO.setTitle((String) request.get("title"));
@@ -28,21 +34,27 @@ public class TaskController {
         if (request.get("assigneeId") != null) {
             taskDTO.setAssigneeId(((Number) request.get("assigneeId")).longValue());
         }
-        Long createdById = ((Number) request.get("createdById")).longValue();
+        
+        // Obtener el ID del usuario autenticado del SecurityService
+        Long createdById = securityService.getCurrentUserId();
+        
         return taskService.createTask(taskDTO, projectId, createdById);
     }
 
     @GetMapping("/project/{projectId}")
+    @RequireProjectMember
     public List<TaskDTO> getTasksByProject(@PathVariable Long projectId) {
         return taskService.getTasksByProject(projectId);
     }
 
     @GetMapping("/{id}")
+    @RequireTaskAccess
     public TaskDTO getTaskById(@PathVariable Long id) {
         return taskService.getTaskById(id);
     }
 
     @PutMapping("/{id}")
+    @RequireTaskAccess
     public TaskDTO updateTask(@PathVariable Long id, @RequestBody Map<String, Object> request) {
         TaskDTO taskDTO = new TaskDTO();
         taskDTO.setTitle((String) request.get("title"));
@@ -52,23 +64,35 @@ public class TaskController {
         if (request.get("status") != null) {
             taskDTO.setStatus(com.colaborai.colaborai.entity.TaskStatus.valueOf((String) request.get("status")));
         }
-        Long userId = ((Number) request.get("userId")).longValue();
+        
+        // Obtener el ID del usuario autenticado del SecurityService
+        Long userId = securityService.getCurrentUserId();
+        
         return taskService.updateTask(id, taskDTO, userId);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTask(@PathVariable Long id, @RequestParam Long userId) {
+    @RequireTaskAccess
+    public void deleteTask(@PathVariable Long id) {
+        // Obtener el ID del usuario autenticado del SecurityService
+        Long userId = securityService.getCurrentUserId();
+        
         taskService.deleteTask(id, userId);
     }
 
     @PutMapping("/{taskId}/assign")
+    @RequireTaskAccess
     public TaskDTO assignTask(@PathVariable Long taskId, @RequestBody Map<String, Object> request) {
         Long assigneeId = ((Number) request.get("assigneeId")).longValue();
-        Long userId = ((Number) request.get("userId")).longValue();
+        
+        // Obtener el ID del usuario autenticado del SecurityService
+        Long userId = securityService.getCurrentUserId();
+        
         return taskService.assignTask(taskId, assigneeId, userId);
     }
 
     @GetMapping("/project/{projectId}/assignable-users")
+    @RequireProjectMember
     public List<UserDTO> getAssignableUsers(@PathVariable Long projectId) {
         return taskService.getAssignableUsers(projectId);
     }
