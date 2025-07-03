@@ -11,5 +11,6 @@ public interface UserConnectionService {
     List<UserConnectionDTO> getPendingRequests(Long userId);
     List<UserConnectionDTO> getSentRequests(Long userId);
     List<UserDTO> getConnectedUsers(Long userId);
+    List<UserConnectionDTO> getAcceptedConnections(Long userId);
     boolean areUsersConnected(Long user1Id, Long user2Id);
 }

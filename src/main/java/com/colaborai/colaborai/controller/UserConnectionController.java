@@ -65,6 +65,13 @@ public class UserConnectionController {
         return userConnectionService.getConnectedUsers(userId);
     }
 
+    @GetMapping("/accepted")
+    public List<UserConnectionDTO> getAcceptedConnections() {
+        // Obtener el usuario autenticado
+        Long userId = securityService.getCurrentUserId();
+        return userConnectionService.getAcceptedConnections(userId);
+    }
+
     @GetMapping("/check")
     public boolean areUsersConnected(@RequestParam Long user1Id, @RequestParam Long user2Id) {
         // Verificar que el usuario actual sea uno de los dos usuarios

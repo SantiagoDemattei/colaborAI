@@ -172,6 +172,16 @@ public class UserConnectionServiceImpl implements UserConnectionService {
     }
 
     @Override
+    public List<UserConnectionDTO> getAcceptedConnections(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        List<UserConnection> connections = userConnectionRepository.findConnectionsByUserAndStatus(user, UserConnection.ConnectionStatus.ACCEPTED);
+        
+        return connections.stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    @Override
     public boolean areUsersConnected(Long user1Id, Long user2Id) {
         User user1 = userRepository.findById(user1Id)
             .orElseThrow(() -> new IllegalArgumentException("Usuario 1 no encontrado"));
