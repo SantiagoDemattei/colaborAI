@@ -23,6 +23,9 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private TaskStatus status = TaskStatus.PENDING;
 
+    @Enumerated(EnumType.STRING)
+    private TaskPriority priority = TaskPriority.MEDIUM;
+
     private LocalDate dueDate;
 
     @ManyToOne
@@ -72,6 +75,14 @@ public class Task {
 
     public void setStatus(TaskStatus status) {
         this.status = status;
+    }
+
+    public TaskPriority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(TaskPriority priority) {
+        this.priority = priority;
     }
 
     public LocalDate getDueDate() {

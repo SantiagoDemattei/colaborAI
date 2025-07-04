@@ -6,6 +6,7 @@ import com.colaborai.colaborai.entity.Project;
 import com.colaborai.colaborai.entity.Task;
 import com.colaborai.colaborai.entity.User;
 import com.colaborai.colaborai.entity.TaskStatus;
+import com.colaborai.colaborai.entity.TaskPriority;
 import com.colaborai.colaborai.repository.ProjectRepository;
 import com.colaborai.colaborai.repository.TaskRepository;
 import com.colaborai.colaborai.repository.UserRepository;
@@ -52,9 +53,12 @@ public class TaskServiceImpl implements TaskService {
         dto.setTitle(task.getTitle());
         dto.setDescription(task.getDescription());
         dto.setStatus(task.getStatus());
+        dto.setPriority(task.getPriority());
         dto.setDueDate(task.getDueDate());
         dto.setAssigneeId(task.getAssignee() != null ? task.getAssignee().getId() : null);
         dto.setProjectId(task.getProject() != null ? task.getProject().getId() : null);
+        dto.setProjectName(task.getProject() != null ? task.getProject().getName() : null);
+        dto.setCreatedByName(task.getCreatedBy() != null ? task.getCreatedBy().getUsername() : null);
         dto.setAssignee(toUserDTO(task.getAssignee()));
         dto.setCreatedBy(toUserDTO(task.getCreatedBy()));
         dto.setCreatedAt(task.getCreatedAt());
@@ -68,6 +72,7 @@ public class TaskServiceImpl implements TaskService {
         task.setTitle(dto.getTitle());
         task.setDescription(dto.getDescription());
         task.setStatus(dto.getStatus() != null ? dto.getStatus() : TaskStatus.PENDING);
+        task.setPriority(dto.getPriority() != null ? dto.getPriority() : TaskPriority.MEDIUM);
         task.setDueDate(dto.getDueDate());
         task.setProject(project);
         task.setCreatedBy(createdBy);
@@ -142,6 +147,7 @@ public class TaskServiceImpl implements TaskService {
             task.setTitle(taskDTO.getTitle());
             task.setDescription(taskDTO.getDescription());
             task.setStatus(taskDTO.getStatus());
+            task.setPriority(taskDTO.getPriority());
             task.setDueDate(taskDTO.getDueDate());
             task.setUpdatedAt(LocalDateTime.now());
 
@@ -220,6 +226,12 @@ public class TaskServiceImpl implements TaskService {
 
         List<User> members = projectMemberRepository.findUsersByProject(project);
         return members.stream().map(this::toUserDTO).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TaskDTO> getTasksByAssignee(Long userId) {
+        List<Task> tasks = taskRepository.findByAssigneeId(userId);
+        return tasks.stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Override

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.colaborai.colaborai.entity.TaskStatus;
+import com.colaborai.colaborai.entity.TaskPriority;
 
 public class TaskDTO {
     private Long id;
@@ -13,6 +14,9 @@ public class TaskDTO {
     private Long assigneeId;
     private LocalDate dueDate;
     private TaskStatus status;
+    private TaskPriority priority;
+    private String projectName;
+    private String createdByName;
     private UserDTO assignee;
     private UserDTO createdBy;
     private LocalDateTime createdAt;
@@ -85,6 +89,30 @@ public class TaskDTO {
 
     public void setStatus(TaskStatus status) {
         this.status = status;
+    }
+
+    public TaskPriority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(TaskPriority priority) {
+        this.priority = priority;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
+    public String getCreatedByName() {
+        return createdByName;
+    }
+
+    public void setCreatedByName(String createdByName) {
+        this.createdByName = createdByName;
     }
 
     public UserDTO getAssignee() {

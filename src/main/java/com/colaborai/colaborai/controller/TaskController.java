@@ -31,6 +31,9 @@ public class TaskController {
         taskDTO.setDescription((String) request.get("description"));
         taskDTO.setDueDate(request.get("dueDate") != null ? 
             java.time.LocalDate.parse((String) request.get("dueDate")) : null);
+        if (request.get("priority") != null) {
+            taskDTO.setPriority(com.colaborai.colaborai.entity.TaskPriority.valueOf((String) request.get("priority")));
+        }
         if (request.get("assigneeId") != null) {
             taskDTO.setAssigneeId(((Number) request.get("assigneeId")).longValue());
         }
@@ -64,6 +67,9 @@ public class TaskController {
         if (request.get("status") != null) {
             taskDTO.setStatus(com.colaborai.colaborai.entity.TaskStatus.valueOf((String) request.get("status")));
         }
+        if (request.get("priority") != null) {
+            taskDTO.setPriority(com.colaborai.colaborai.entity.TaskPriority.valueOf((String) request.get("priority")));
+        }
         
         // Obtener el ID del usuario autenticado del SecurityService
         Long userId = securityService.getCurrentUserId();
@@ -95,5 +101,11 @@ public class TaskController {
     @RequireProjectMember
     public List<UserDTO> getAssignableUsers(@PathVariable Long projectId) {
         return taskService.getAssignableUsers(projectId);
+    }
+
+    @GetMapping("/my-tasks")
+    public List<TaskDTO> getMyAssignedTasks() {
+        Long userId = securityService.getCurrentUserId();
+        return taskService.getTasksByAssignee(userId);
     }
 }
