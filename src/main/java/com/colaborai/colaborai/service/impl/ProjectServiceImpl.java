@@ -41,6 +41,34 @@ public class ProjectServiceImpl implements ProjectService {
         return dto;
     }
 
+    private ProjectDTO toDTO(Project project, Long currentUserId) {
+        ProjectDTO dto = new ProjectDTO();
+        dto.setId(project.getId());
+        dto.setName(project.getName());
+        dto.setDescription(project.getDescription());
+        dto.setCreatedAt(project.getCreatedAt());
+        dto.setOwnerId(project.getOwner() != null ? project.getOwner().getId() : null);
+        
+        // Determinar el rol del usuario actual
+        if (currentUserId != null) {
+            if (project.getOwner() != null && project.getOwner().getId().equals(currentUserId)) {
+                dto.setCurrentUserRole(ProjectMember.ProjectRole.OWNER);
+            } else {
+                // Buscar si el usuario es miembro del proyecto
+                User currentUser = userRepository.findById(currentUserId).orElse(null);
+                if (currentUser != null) {
+                    Optional<ProjectMember> membership = projectMemberRepository
+                        .findByProjectAndUser(project, currentUser);
+                    if (membership.isPresent()) {
+                        dto.setCurrentUserRole(membership.get().getRole());
+                    }
+                }
+            }
+        }
+        
+        return dto;
+    }
+
     private Project toEntity(ProjectDTO dto) {
         Project project = new Project();
         project.setId(dto.getId());
@@ -92,7 +120,7 @@ public class ProjectServiceImpl implements ProjectService {
         allProjects.addAll(ownedProjects);
         allProjects.addAll(memberProjects);
         
-        return allProjects.stream().map(this::toDTO).collect(Collectors.toList());
+        return allProjects.stream().map(project -> toDTO(project, userId)).collect(Collectors.toList());
     }
 
     @Override

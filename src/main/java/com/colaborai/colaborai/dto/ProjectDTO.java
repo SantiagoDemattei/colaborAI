@@ -1,6 +1,7 @@
 package com.colaborai.colaborai.dto;
 
 import java.time.LocalDate;
+import com.colaborai.colaborai.entity.ProjectMember;
 
 public class ProjectDTO {
     private Long id;
@@ -8,6 +9,7 @@ public class ProjectDTO {
     private String description;
     private LocalDate createdAt;
     private Long ownerId;
+    private ProjectMember.ProjectRole currentUserRole;
     
     public ProjectDTO() {
     }
@@ -58,6 +60,14 @@ public class ProjectDTO {
 
     public void setOwnerId(Long ownerId) {
         this.ownerId = ownerId;
+    }
+
+    public ProjectMember.ProjectRole getCurrentUserRole() {
+        return currentUserRole;
+    }
+
+    public void setCurrentUserRole(ProjectMember.ProjectRole currentUserRole) {
+        this.currentUserRole = currentUserRole;
     }
 
     
