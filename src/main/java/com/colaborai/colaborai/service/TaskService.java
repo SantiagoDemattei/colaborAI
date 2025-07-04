@@ -20,4 +20,8 @@ public interface TaskService {
     TaskDTO removeTaskDependency(Long taskId, Long dependsOnTaskId, Long userId);
     List<TaskDTO> getTaskDependencies(Long taskId);
     List<TaskDTO> getTaskDependents(Long taskId);
+    
+    // Métodos para análisis de camino crítico
+    List<TaskDTO> getCriticalPath(Long projectId);
+    List<TaskDTO> getCriticalTasks(Long projectId);
 }

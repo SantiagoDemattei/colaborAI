@@ -16,8 +16,7 @@ import com.colaborai.colaborai.service.NotificationService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -71,6 +70,7 @@ public class TaskServiceImpl implements TaskService {
                 .map(Task::getId)
                 .collect(Collectors.toList()));
         dto.setCanBeCompleted(task.canBeCompleted());
+        dto.setEstimatedDuration(task.getEstimatedDuration() != null ? task.getEstimatedDuration() : 1);
         
         return dto;
     }
@@ -372,5 +372,186 @@ public class TaskServiceImpl implements TaskService {
         }
         
         return false;
+    }
+
+    @Override
+    public List<TaskDTO> getCriticalPath(Long projectId) {
+        List<Task> projectTasks = taskRepository.findByProjectId(projectId);
+        if (projectTasks.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Calcular CPM
+        Map<Long, TaskDTO> taskMap = calculateCPM(projectTasks);
+        
+        // Encontrar el camino crítico
+        return findCriticalPath(taskMap, projectTasks);
+    }
+
+    @Override
+    public List<TaskDTO> getCriticalTasks(Long projectId) {
+        List<Task> projectTasks = taskRepository.findByProjectId(projectId);
+        if (projectTasks.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Map<Long, TaskDTO> taskMap = calculateCPM(projectTasks);
+        
+        return taskMap.values().stream()
+                .filter(TaskDTO::isCritical)
+                .collect(Collectors.toList());
+    }
+
+    // Método auxiliar para calcular CPM
+    private Map<Long, TaskDTO> calculateCPM(List<Task> tasks) {
+        Map<Long, TaskDTO> taskMap = new HashMap<>();
+        
+        // Convertir tareas a DTOs con cálculos CPM
+        for (Task task : tasks) {
+            TaskDTO dto = toDTO(task);
+            taskMap.put(task.getId(), dto);
+        }
+
+        // Forward pass - calcular ES y EF
+        calculateForwardPass(taskMap, tasks);
+        
+        // Backward pass - calcular LS y LF
+        calculateBackwardPass(taskMap, tasks);
+        
+        // Calcular holgura y marcar tareas críticas
+        calculateFloatAndCritical(taskMap);
+        
+        return taskMap;
+    }
+
+    private void calculateForwardPass(Map<Long, TaskDTO> taskMap, List<Task> tasks) {
+        // Ordenamiento topológico para procesar tareas en orden correcto
+        List<Task> sortedTasks = topologicalSort(tasks);
+        
+        for (Task task : sortedTasks) {
+            TaskDTO dto = taskMap.get(task.getId());
+            int maxPredecessorEF = 0;
+            
+            // Encontrar el mayor EF de las tareas predecesoras
+            for (Task dependency : task.getDependsOn()) {
+                TaskDTO depDto = taskMap.get(dependency.getId());
+                if (depDto != null) {
+                    maxPredecessorEF = Math.max(maxPredecessorEF, depDto.getEarliestFinish());
+                }
+            }
+            
+            dto.setEarliestStart(maxPredecessorEF);
+            dto.setEarliestFinish(maxPredecessorEF + dto.getEstimatedDuration());
+        }
+    }
+
+    private void calculateBackwardPass(Map<Long, TaskDTO> taskMap, List<Task> tasks) {
+        // Encontrar tareas finales (sin sucesores)
+        List<Task> finalTasks = tasks.stream()
+                .filter(task -> task.getDependents().isEmpty())
+                .collect(Collectors.toList());
+        
+        // Encontrar el mayor EF del proyecto
+        int projectFinish = taskMap.values().stream()
+                .mapToInt(TaskDTO::getEarliestFinish)
+                .max()
+                .orElse(0);
+        
+        // Inicializar LF de tareas finales
+        for (Task task : finalTasks) {
+            TaskDTO dto = taskMap.get(task.getId());
+            dto.setLatestFinish(projectFinish);
+            dto.setLatestStart(projectFinish - dto.getEstimatedDuration());
+        }
+        
+        // Procesar en orden inverso
+        List<Task> reverseSortedTasks = topologicalSort(tasks);
+        Collections.reverse(reverseSortedTasks);
+        
+        for (Task task : reverseSortedTasks) {
+            TaskDTO dto = taskMap.get(task.getId());
+            if (dto.getLatestFinish() == 0) { // Si no se ha calculado aún
+                int minSuccessorLS = Integer.MAX_VALUE;
+                
+                for (Task dependent : task.getDependents()) {
+                    TaskDTO depDto = taskMap.get(dependent.getId());
+                    if (depDto != null) {
+                        minSuccessorLS = Math.min(minSuccessorLS, depDto.getLatestStart());
+                    }
+                }
+                
+                if (minSuccessorLS != Integer.MAX_VALUE) {
+                    dto.setLatestFinish(minSuccessorLS);
+                    dto.setLatestStart(minSuccessorLS - dto.getEstimatedDuration());
+                }
+            }
+        }
+    }
+
+    private void calculateFloatAndCritical(Map<Long, TaskDTO> taskMap) {
+        for (TaskDTO dto : taskMap.values()) {
+            // Calcular holgura total
+            dto.setTotalFloat(dto.getLatestStart() - dto.getEarliestStart());
+            
+            // Una tarea es crítica si su holgura es 0
+            dto.setCritical(dto.getTotalFloat() == 0);
+        }
+    }
+
+    private List<TaskDTO> findCriticalPath(Map<Long, TaskDTO> taskMap, List<Task> tasks) {
+        List<TaskDTO> criticalPath = new ArrayList<>();
+        
+        // Encontrar tareas críticas
+        List<TaskDTO> criticalTasks = taskMap.values().stream()
+                .filter(TaskDTO::isCritical)
+                .sorted((a, b) -> Integer.compare(a.getEarliestStart(), b.getEarliestStart()))
+                .collect(Collectors.toList());
+        
+        // Establecer posiciones en el camino crítico
+        for (int i = 0; i < criticalTasks.size(); i++) {
+            criticalTasks.get(i).setCriticalPathPosition(i + 1);
+        }
+        
+        return criticalTasks;
+    }
+
+    private List<Task> topologicalSort(List<Task> tasks) {
+        Map<Long, Task> taskMap = tasks.stream()
+                .collect(Collectors.toMap(Task::getId, task -> task));
+        
+        Map<Long, Integer> inDegree = new HashMap<>();
+        
+        // Calcular grado de entrada para cada tarea
+        for (Task task : tasks) {
+            inDegree.put(task.getId(), task.getDependsOn().size());
+        }
+        
+        Queue<Task> queue = new LinkedList<>();
+        List<Task> result = new ArrayList<>();
+        
+        // Agregar tareas sin dependencias a la cola
+        for (Task task : tasks) {
+            if (inDegree.get(task.getId()) == 0) {
+                queue.offer(task);
+            }
+        }
+        
+        // Procesar tareas
+        while (!queue.isEmpty()) {
+            Task current = queue.poll();
+            result.add(current);
+            
+            // Reducir grado de entrada de tareas dependientes
+            for (Task dependent : current.getDependents()) {
+                int newInDegree = inDegree.get(dependent.getId()) - 1;
+                inDegree.put(dependent.getId(), newInDegree);
+                
+                if (newInDegree == 0) {
+                    queue.offer(dependent);
+                }
+            }
+        }
+        
+        return result;
     }
 }

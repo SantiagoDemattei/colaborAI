@@ -29,6 +29,9 @@ public class Task {
 
     private LocalDate dueDate;
 
+    @Column(name = "estimated_duration")
+    private Integer estimatedDuration; // Duración estimada en días
+
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;
@@ -106,6 +109,14 @@ public class Task {
 
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
+    }
+
+    public Integer getEstimatedDuration() {
+        return estimatedDuration;
+    }
+
+    public void setEstimatedDuration(Integer estimatedDuration) {
+        this.estimatedDuration = estimatedDuration;
     }
 
     public Project getProject() {

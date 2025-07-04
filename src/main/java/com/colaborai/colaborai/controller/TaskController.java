@@ -145,4 +145,17 @@ public class TaskController {
     public List<TaskDTO> getTaskDependents(@PathVariable Long taskId) {
         return taskService.getTaskDependents(taskId);
     }
+
+    // Endpoints para análisis CPM-PERT
+    @GetMapping("/project/{projectId}/critical-path")
+    @RequireProjectMember
+    public List<TaskDTO> getCriticalPath(@PathVariable Long projectId) {
+        return taskService.getCriticalPath(projectId);
+    }
+
+    @GetMapping("/project/{projectId}/critical-tasks")
+    @RequireProjectMember
+    public List<TaskDTO> getCriticalTasks(@PathVariable Long projectId) {
+        return taskService.getCriticalTasks(projectId);
+    }
 }

@@ -29,6 +29,16 @@ public class TaskDTO {
     private List<Long> dependentTaskIds;
     private List<TaskDTO> dependentTasks;
     private boolean canBeCompleted;
+    
+    // Campos para análisis CPM-PERT
+    private int estimatedDuration; // Duración estimada en días
+    private int earliestStart; // Inicio más temprano (ES)
+    private int earliestFinish; // Fin más temprano (EF)
+    private int latestStart; // Inicio más tardío (LS)
+    private int latestFinish; // Fin más tardío (LF)
+    private int totalFloat; // Holgura total
+    private boolean isCritical; // Si la tarea está en el camino crítico
+    private int criticalPathPosition; // Posición en el camino crítico
 
     public TaskDTO() {
     }
@@ -193,6 +203,70 @@ public class TaskDTO {
 
     public void setCanBeCompleted(boolean canBeCompleted) {
         this.canBeCompleted = canBeCompleted;
+    }
+
+    public int getEstimatedDuration() {
+        return estimatedDuration;
+    }
+
+    public void setEstimatedDuration(int estimatedDuration) {
+        this.estimatedDuration = estimatedDuration;
+    }
+
+    public int getEarliestStart() {
+        return earliestStart;
+    }
+
+    public void setEarliestStart(int earliestStart) {
+        this.earliestStart = earliestStart;
+    }
+
+    public int getEarliestFinish() {
+        return earliestFinish;
+    }
+
+    public void setEarliestFinish(int earliestFinish) {
+        this.earliestFinish = earliestFinish;
+    }
+
+    public int getLatestStart() {
+        return latestStart;
+    }
+
+    public void setLatestStart(int latestStart) {
+        this.latestStart = latestStart;
+    }
+
+    public int getLatestFinish() {
+        return latestFinish;
+    }
+
+    public void setLatestFinish(int latestFinish) {
+        this.latestFinish = latestFinish;
+    }
+
+    public int getTotalFloat() {
+        return totalFloat;
+    }
+
+    public void setTotalFloat(int totalFloat) {
+        this.totalFloat = totalFloat;
+    }
+
+    public boolean isCritical() {
+        return isCritical;
+    }
+
+    public void setCritical(boolean critical) {
+        isCritical = critical;
+    }
+
+    public int getCriticalPathPosition() {
+        return criticalPathPosition;
+    }
+
+    public void setCriticalPathPosition(int criticalPathPosition) {
+        this.criticalPathPosition = criticalPathPosition;
     }
 
 }
