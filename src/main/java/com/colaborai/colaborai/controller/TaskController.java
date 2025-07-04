@@ -35,7 +35,12 @@ public class TaskController {
             taskDTO.setPriority(com.colaborai.colaborai.entity.TaskPriority.valueOf((String) request.get("priority")));
         }
         if (request.get("assigneeId") != null) {
-            taskDTO.setAssigneeId(((Number) request.get("assigneeId")).longValue());
+            Object assigneeIdObj = request.get("assigneeId");
+            if (assigneeIdObj instanceof Number) {
+                taskDTO.setAssigneeId(((Number) assigneeIdObj).longValue());
+            } else if (assigneeIdObj instanceof String) {
+                taskDTO.setAssigneeId(Long.parseLong((String) assigneeIdObj));
+            }
         }
         
         // Obtener el ID del usuario autenticado del SecurityService

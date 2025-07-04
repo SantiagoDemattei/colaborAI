@@ -119,7 +119,8 @@ public class SecurityService {
     public boolean isCurrentUserProjectMember(Long projectId) {
         try {
             Long currentUserId = getCurrentUserId();
-            return projectMemberService.isUserProjectMember(projectId, currentUserId);
+            boolean isMember = projectMemberService.isUserProjectMember(projectId, currentUserId);
+            return isMember;
         } catch (SecurityException e) {
             return false;
         }

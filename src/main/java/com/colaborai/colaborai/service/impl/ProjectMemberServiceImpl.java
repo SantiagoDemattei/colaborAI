@@ -189,13 +189,16 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         Optional<ProjectMember> membership = projectMemberRepository
             .findByProjectAndUser(project, userRepository.findById(userId).orElse(null));
 
-        return membership.isPresent() && 
+        boolean isAdmin = membership.isPresent() && 
                membership.get().getRole() == ProjectMember.ProjectRole.ADMIN;
+        
+        return isAdmin;
     }
 
     @Override
     public boolean canUserAssignTasks(Long projectId, Long userId) {
-        return canUserModifyProject(projectId, userId);
+        boolean canAssign = canUserModifyProject(projectId, userId);
+        return canAssign;
     }
 
     @Override
@@ -211,7 +214,9 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             return true;
         }
 
-        return projectMemberRepository.existsByProjectAndUser(project, user);
+        boolean isMember = projectMemberRepository.existsByProjectAndUser(project, user);
+        
+        return isMember;
     }
 
     @Override
