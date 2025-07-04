@@ -113,4 +113,9 @@ public class TaskController {
         Long userId = securityService.getCurrentUserId();
         return taskService.getTasksByAssignee(userId);
     }
+
+    @GetMapping("/priorities")
+    public com.colaborai.colaborai.entity.TaskPriority[] getTaskPriorities() {
+        return com.colaborai.colaborai.entity.TaskPriority.values();
+    }
 }

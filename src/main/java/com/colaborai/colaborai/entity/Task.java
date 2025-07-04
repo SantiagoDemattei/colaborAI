@@ -24,7 +24,7 @@ public class Task {
     private TaskStatus status = TaskStatus.PENDING;
 
     @Enumerated(EnumType.STRING)
-    private TaskPriority priority = TaskPriority.MEDIUM;
+    private TaskPriority priority;
 
     private LocalDate dueDate;
 

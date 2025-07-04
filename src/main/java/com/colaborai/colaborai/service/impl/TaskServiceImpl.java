@@ -6,7 +6,6 @@ import com.colaborai.colaborai.entity.Project;
 import com.colaborai.colaborai.entity.Task;
 import com.colaborai.colaborai.entity.User;
 import com.colaborai.colaborai.entity.TaskStatus;
-import com.colaborai.colaborai.entity.TaskPriority;
 import com.colaborai.colaborai.repository.ProjectRepository;
 import com.colaborai.colaborai.repository.TaskRepository;
 import com.colaborai.colaborai.repository.UserRepository;
@@ -72,7 +71,7 @@ public class TaskServiceImpl implements TaskService {
         task.setTitle(dto.getTitle());
         task.setDescription(dto.getDescription());
         task.setStatus(dto.getStatus() != null ? dto.getStatus() : TaskStatus.PENDING);
-        task.setPriority(dto.getPriority() != null ? dto.getPriority() : TaskPriority.MEDIUM);
+        task.setPriority(dto.getPriority());
         task.setDueDate(dto.getDueDate());
         task.setProject(project);
         task.setCreatedBy(createdBy);
