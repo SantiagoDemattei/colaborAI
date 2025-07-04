@@ -62,6 +62,16 @@ public class TaskServiceImpl implements TaskService {
         dto.setCreatedBy(toUserDTO(task.getCreatedBy()));
         dto.setCreatedAt(task.getCreatedAt());
         dto.setUpdatedAt(task.getUpdatedAt());
+        
+        // Añadir información de dependencias
+        dto.setDependsOnTaskIds(task.getDependsOn().stream()
+                .map(Task::getId)
+                .collect(Collectors.toList()));
+        dto.setDependentTaskIds(task.getDependents().stream()
+                .map(Task::getId)
+                .collect(Collectors.toList()));
+        dto.setCanBeCompleted(task.canBeCompleted());
+        
         return dto;
     }
 
@@ -256,6 +266,109 @@ public class TaskServiceImpl implements TaskService {
         // 3. Es miembro del proyecto al que pertenece la tarea
         if (task.getProject() != null) {
             return projectMemberService.isUserProjectMember(task.getProject().getId(), userId);
+        }
+        
+        return false;
+    }
+
+    @Override
+    public TaskDTO addTaskDependency(Long taskId, Long dependsOnTaskId, Long userId) {
+        Optional<Task> taskOpt = taskRepository.findById(taskId);
+        Optional<Task> dependsOnTaskOpt = taskRepository.findById(dependsOnTaskId);
+        
+        if (!taskOpt.isPresent() || !dependsOnTaskOpt.isPresent()) {
+            throw new IllegalArgumentException("Una o ambas tareas no existen");
+        }
+        
+        Task task = taskOpt.get();
+        Task dependsOnTask = dependsOnTaskOpt.get();
+        
+        // Verificar que el usuario tenga acceso a ambas tareas
+        if (!canUserAccessTask(taskId, userId) || !canUserAccessTask(dependsOnTaskId, userId)) {
+            throw new SecurityException("No tienes permisos para modificar estas tareas");
+        }
+        
+        // Verificar que ambas tareas pertenezcan al mismo proyecto
+        if (!task.getProject().getId().equals(dependsOnTask.getProject().getId())) {
+            throw new IllegalArgumentException("No se pueden crear dependencias entre tareas de diferentes proyectos");
+        }
+        
+        // Verificar que no se cree una dependencia circular
+        if (wouldCreateCircularDependency(task, dependsOnTask)) {
+            throw new IllegalArgumentException("Esta dependencia crearía una referencia circular");
+        }
+        
+        task.addDependency(dependsOnTask);
+        task.setUpdatedAt(LocalDateTime.now());
+        taskRepository.save(task);
+        
+        return toDTO(task);
+    }
+
+    @Override
+    public TaskDTO removeTaskDependency(Long taskId, Long dependsOnTaskId, Long userId) {
+        Optional<Task> taskOpt = taskRepository.findById(taskId);
+        Optional<Task> dependsOnTaskOpt = taskRepository.findById(dependsOnTaskId);
+        
+        if (!taskOpt.isPresent() || !dependsOnTaskOpt.isPresent()) {
+            throw new IllegalArgumentException("Una o ambas tareas no existen");
+        }
+        
+        Task task = taskOpt.get();
+        Task dependsOnTask = dependsOnTaskOpt.get();
+        
+        // Verificar que el usuario tenga acceso a la tarea
+        if (!canUserAccessTask(taskId, userId)) {
+            throw new SecurityException("No tienes permisos para modificar esta tarea");
+        }
+        
+        task.removeDependency(dependsOnTask);
+        task.setUpdatedAt(LocalDateTime.now());
+        taskRepository.save(task);
+        
+        return toDTO(task);
+    }
+
+    @Override
+    public List<TaskDTO> getTaskDependencies(Long taskId) {
+        Optional<Task> taskOpt = taskRepository.findById(taskId);
+        if (!taskOpt.isPresent()) {
+            throw new IllegalArgumentException("La tarea no existe");
+        }
+        
+        Task task = taskOpt.get();
+        return task.getDependsOn().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TaskDTO> getTaskDependents(Long taskId) {
+        Optional<Task> taskOpt = taskRepository.findById(taskId);
+        if (!taskOpt.isPresent()) {
+            throw new IllegalArgumentException("La tarea no existe");
+        }
+        
+        Task task = taskOpt.get();
+        return task.getDependents().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Método auxiliar para detectar dependencias circulares
+    private boolean wouldCreateCircularDependency(Task task, Task dependsOnTask) {
+        return hasPath(dependsOnTask, task);
+    }
+
+    private boolean hasPath(Task from, Task to) {
+        if (from.equals(to)) {
+            return true;
+        }
+        
+        for (Task dependency : from.getDependsOn()) {
+            if (hasPath(dependency, to)) {
+                return true;
+            }
         }
         
         return false;

@@ -118,4 +118,31 @@ public class TaskController {
     public com.colaborai.colaborai.entity.TaskPriority[] getTaskPriorities() {
         return com.colaborai.colaborai.entity.TaskPriority.values();
     }
+
+    // Endpoints para dependencias entre tareas
+    @PostMapping("/{taskId}/dependencies/{dependsOnTaskId}")
+    @RequireTaskAccess
+    public TaskDTO addTaskDependency(@PathVariable Long taskId, @PathVariable Long dependsOnTaskId) {
+        Long userId = securityService.getCurrentUserId();
+        return taskService.addTaskDependency(taskId, dependsOnTaskId, userId);
+    }
+
+    @DeleteMapping("/{taskId}/dependencies/{dependsOnTaskId}")
+    @RequireTaskAccess
+    public TaskDTO removeTaskDependency(@PathVariable Long taskId, @PathVariable Long dependsOnTaskId) {
+        Long userId = securityService.getCurrentUserId();
+        return taskService.removeTaskDependency(taskId, dependsOnTaskId, userId);
+    }
+
+    @GetMapping("/{taskId}/dependencies")
+    @RequireTaskAccess
+    public List<TaskDTO> getTaskDependencies(@PathVariable Long taskId) {
+        return taskService.getTaskDependencies(taskId);
+    }
+
+    @GetMapping("/{taskId}/dependents")
+    @RequireTaskAccess
+    public List<TaskDTO> getTaskDependents(@PathVariable Long taskId) {
+        return taskService.getTaskDependents(taskId);
+    }
 }

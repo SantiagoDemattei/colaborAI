@@ -2,6 +2,7 @@ package com.colaborai.colaborai.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.colaborai.colaborai.entity.TaskStatus;
 import com.colaborai.colaborai.entity.TaskPriority;
@@ -21,6 +22,13 @@ public class TaskDTO {
     private UserDTO createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    // Dependencias de tareas
+    private List<Long> dependsOnTaskIds;
+    private List<TaskDTO> dependsOnTasks;
+    private List<Long> dependentTaskIds;
+    private List<TaskDTO> dependentTasks;
+    private boolean canBeCompleted;
 
     public TaskDTO() {
     }
@@ -145,6 +153,46 @@ public class TaskDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public List<Long> getDependsOnTaskIds() {
+        return dependsOnTaskIds;
+    }
+
+    public void setDependsOnTaskIds(List<Long> dependsOnTaskIds) {
+        this.dependsOnTaskIds = dependsOnTaskIds;
+    }
+
+    public List<TaskDTO> getDependsOnTasks() {
+        return dependsOnTasks;
+    }
+
+    public void setDependsOnTasks(List<TaskDTO> dependsOnTasks) {
+        this.dependsOnTasks = dependsOnTasks;
+    }
+
+    public List<Long> getDependentTaskIds() {
+        return dependentTaskIds;
+    }
+
+    public void setDependentTaskIds(List<Long> dependentTaskIds) {
+        this.dependentTaskIds = dependentTaskIds;
+    }
+
+    public List<TaskDTO> getDependentTasks() {
+        return dependentTasks;
+    }
+
+    public void setDependentTasks(List<TaskDTO> dependentTasks) {
+        this.dependentTasks = dependentTasks;
+    }
+
+    public boolean isCanBeCompleted() {
+        return canBeCompleted;
+    }
+
+    public void setCanBeCompleted(boolean canBeCompleted) {
+        this.canBeCompleted = canBeCompleted;
     }
 
 }

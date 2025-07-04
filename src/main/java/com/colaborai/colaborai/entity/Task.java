@@ -2,10 +2,11 @@ package com.colaborai.colaborai.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.HashSet;
 
 import jakarta.persistence.*;
-//import java.time.*;
-//import java.util.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "tasks")
@@ -44,6 +45,20 @@ public class Task {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt;
+
+    // Relaciones de dependencias entre tareas
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "task_dependencies",
+        joinColumns = @JoinColumn(name = "task_id"),
+        inverseJoinColumns = @JoinColumn(name = "depends_on_task_id")
+    )
+    @JsonIgnore
+    private Set<Task> dependsOn = new HashSet<>();
+
+    @ManyToMany(mappedBy = "dependsOn", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private Set<Task> dependents = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -131,5 +146,38 @@ public class Task {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Set<Task> getDependsOn() {
+        return dependsOn;
+    }
+
+    public void setDependsOn(Set<Task> dependsOn) {
+        this.dependsOn = dependsOn;
+    }
+
+    public Set<Task> getDependents() {
+        return dependents;
+    }
+
+    public void setDependents(Set<Task> dependents) {
+        this.dependents = dependents;
+    }
+
+    // Método para agregar una dependencia
+    public void addDependency(Task dependency) {
+        this.dependsOn.add(dependency);
+        dependency.getDependents().add(this);
+    }
+
+    // Método para remover una dependencia
+    public void removeDependency(Task dependency) {
+        this.dependsOn.remove(dependency);
+        dependency.getDependents().remove(this);
+    }
+
+    // Método para verificar si una tarea puede ser completada
+    public boolean canBeCompleted() {
+        return dependsOn.stream().allMatch(task -> task.getStatus() == TaskStatus.COMPLETED);
     }
 }
